@@ -1,0 +1,31 @@
+{
+    "mappings": {
+        "basic": {
+            "t\u0000(1,1)": "default",
+            "t\u0000(0,0)": [[1, 0, "self"], [0, 1, "self"], [-1, 0, "notself"], [0, -1, "notself"]],
+            "t\u0000(1,0)": [[1, 0, "self"], [0, 1, "self"], [-1, 0, "self"], [0, -1, "notself"]],
+            "t\u0000(2,0)": [[1, 0, "notself"], [0, 1, "self"], [-1, 0, "self"], [0, -1, "notself"]],
+            "t\u0000(2,1)": [[1, 0, "notself"], [0, 1, "self"], [-1, 0, "self"], [0, -1, "self"]],
+            "t\u0000(2,2)": [[1, 0, "notself"], [0, 1, "notself"], [-1, 0, "self"], [0, -1, "self"]],
+            "t\u0000(1,2)": [[1, 0, "self"], [0, 1, "notself"], [-1, 0, "self"], [0, -1, "self"]],
+            "t\u0000(0,2)": [[1, 0, "self"], [0, 1, "notself"], [-1, 0, "notself"], [0, -1, "self"]],
+            "t\u0000(0,1)": [[1, 0, "self"], [0, 1, "self"], [-1, 0, "notself"], [0, -1, "self"]]
+        },
+		"basic_with_corners": {
+            "t\u0000(0,8)": "default",
+            "t\u0000(0,0)": [[1, 0, "self"], [0, 1, "self"], [-1, 0, "notself"], [0, -1, "notself"]],
+            "t\u0000(0,1)": [[1, 0, "self"], [0, 1, "self"], [-1, 0, "self"], [0, -1, "notself"]],
+            "t\u0000(0,2)": [[1, 0, "notself"], [0, 1, "self"], [-1, 0, "self"], [0, -1, "notself"]],
+            "t\u0000(0,3)": [[1, 0, "notself"], [0, 1, "self"], [-1, 0, "self"], [0, -1, "self"]],
+            "t\u0000(0,4)": [[1, 0, "notself"], [0, 1, "notself"], [-1, 0, "self"], [0, -1, "self"]],
+            "t\u0000(0,5)": [[1, 0, "self"], [0, 1, "notself"], [-1, 0, "self"], [0, -1, "self"]],
+            "t\u0000(0,6)": [[1, 0, "self"], [0, 1, "notself"], [-1, 0, "notself"], [0, -1, "self"]],
+            "t\u0000(0,7)": [[1, 0, "self"], [0, 1, "self"], [-1, 0, "notself"], [0, -1, "self"]],
+            "t\u0000(0,9)": [[1, 0, "self"], [0, 1, "self"], [-1, 0, "self"], [0, -1, "self"], [-1, -1, "notself"], [1, -1, "self"]],
+            "t\u0000(0,10)": [[1, 0, "self"], [0, 1, "self"], [-1, 0, "self"], [0, -1, "self"], [-1, -1, "self"], [1, -1, "notself"]]
+        }
+    },
+    "assignment": {
+		"grass": "basic"
+    }
+}
