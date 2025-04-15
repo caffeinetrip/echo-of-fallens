@@ -9,7 +9,7 @@ from scripts.hud import HUD
 from scripts.managers.room_manager import RoomManager
 from scripts.managers.battle_manager import BattleManager
 from scripts.managers.dialogue_manager import DialogueManager
-from scripts.scenes import PrologueScene
+from scripts.scene import PrologueScene
 
 class Game(pp.PygpenGame):
     def load(self):
