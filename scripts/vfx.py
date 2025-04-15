@@ -11,23 +11,31 @@ class BattleVFX:
         
     def cleanup_old_sparks(self, current_time, force=False):
         if force or current_time - self.last_cleanup_time > 5.0:
-            self.sparks = [s for s in self.sparks if hasattr(s, 'creation_time') and 
-                          current_time - s.creation_time <= s.max_lifetime]
+            self._remove_expired_sparks(current_time)
             self.last_cleanup_time = current_time
+    
+    def _remove_expired_sparks(self, current_time):
+        self.sparks = [s for s in self.sparks if hasattr(s, 'creation_time') and 
+                      current_time - s.creation_time <= s.max_lifetime]
     
     def update_sparks(self, delta_time=0.016):
         current_time = pygame.time.get_ticks() / 1000
 
+        self._initialize_spark_timers(current_time)
+        self._update_active_sparks(current_time, delta_time)
+        
+        if random.random() < 0.03:
+            self.generate_ambient_spark()
+    
+    def _initialize_spark_timers(self, current_time):
         for spark in self.sparks:
             if not hasattr(spark, 'creation_time'):
                 spark.creation_time = current_time
                 spark.max_lifetime = getattr(spark, 'max_lifetime', 2.0)
-
+    
+    def _update_active_sparks(self, current_time, delta_time):
         self.sparks = [s for s in self.sparks if not s.update(delta_time) and 
                       current_time - s.creation_time <= s.max_lifetime]
-        
-        if random.random() < 0.03:
-            self.generate_ambient_spark()
     
     def generate_ambient_spark(self):
         screen_width, screen_height = 320, 240
@@ -53,15 +61,15 @@ class BattleVFX:
             random.randint(200, 255)
         )
         
-        self.sparks.append(Spark(
-            pos=(x, y),
-            angle=angle,
-            size=(random.uniform(0.01, 0.015), random.uniform(0.01, 0.015)),
-            speed=random.uniform(80, 180),
-            decay=random.uniform(1, 1.9),
-            color=spark_color,
-            z=5
-        ))
+        self._create_spark(
+            (x, y), 
+            angle, 
+            (random.uniform(0.01, 0.015), random.uniform(0.01, 0.015)),
+            random.uniform(80, 180),
+            random.uniform(1, 1.9),
+            spark_color,
+            5
+        )
         
         if hasattr(self.e['Window'], 'fight'):
             self.e['Window'].fight = True
@@ -71,8 +79,12 @@ class BattleVFX:
         dy = target_pos[1] - source_pos[1]
         target_angle = math.atan2(dy, dx)
         
+        self._create_source_sparks(source_pos, target_angle, color, damage)
+        self._create_target_explosion(target_pos, color)
+    
+    def _create_source_sparks(self, source_pos, target_angle, color, damage):
         num_sparks = min(10, 5 + damage // 2)
-        for j in range(num_sparks):
+        for _ in range(num_sparks):
             offset_angle = target_angle + random.uniform(-0.4, 0.4)
             offset_distance = random.uniform(5, 20)
             spark_pos = (
@@ -80,39 +92,48 @@ class BattleVFX:
                 source_pos[1] + math.sin(offset_angle) * offset_distance
             )
             
-            self.sparks.append(Spark(
-                pos=spark_pos,
-                angle=target_angle + random.uniform(-0.2, 0.2),
-                size=(random.uniform(2, 4), random.uniform(0.7, 1.5)),
-                speed=random.uniform(150, 250),
-                decay=random.uniform(0.4, 0.8),
-                color=color,
-                z=10
-            ))
-        
-        for i in range(5):
+            self._create_spark(
+                spark_pos,
+                target_angle + random.uniform(-0.2, 0.2),
+                (random.uniform(2, 4), random.uniform(0.7, 1.5)),
+                random.uniform(150, 250),
+                random.uniform(0.4, 0.8),
+                color,
+                10
+            )
+    
+    def _create_target_explosion(self, target_pos, color):
+        for _ in range(5):
             explosion_angle = random.uniform(0, math.pi * 2)
-            self.sparks.append(Spark(
-                pos=target_pos,
-                angle=explosion_angle,
-                size=(random.uniform(2, 5), random.uniform(0.7, 1.5)),
-                speed=random.uniform(80, 180),
-                decay=random.uniform(0.3, 0.5),
-                color=color,
-                z=10
-            ))
+            self._create_spark(
+                target_pos,
+                explosion_angle,
+                (random.uniform(2, 5), random.uniform(0.7, 1.5)),
+                random.uniform(80, 180),
+                random.uniform(0.3, 0.5),
+                color,
+                10
+            )
+    
+    def _create_spark(self, pos, angle, size, speed, decay, color, z):
+        self.sparks.append(Spark(
+            pos=pos,
+            angle=angle,
+            size=size,
+            speed=speed,
+            decay=decay,
+            color=color,
+            z=z
+        ))
     
     def get_attack_color(self, attack_type):
-        if attack_type == "water":
-            return (50, 100, 255)
-        elif attack_type == "earth":
-            return (50, 200, 50)
-        elif attack_type == "fire":
-            return (255, 50, 50)
-        elif attack_type == "dark":
-            return (150, 0, 255)
-        else:
-            return (255, 100, 50)
+        colors = {
+            "water": (50, 100, 255),
+            "earth": (50, 200, 50),
+            "fire": (255, 50, 50),
+            "dark": (150, 0, 255)
+        }
+        return colors.get(attack_type, (255, 100, 50))
     
     def render(self):
         for spark in self.sparks:

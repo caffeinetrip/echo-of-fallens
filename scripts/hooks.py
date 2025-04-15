@@ -20,8 +20,8 @@ def gen_hook():
         if tile_data['group'] == 'entities':
             if tuple(tile_data['tile_id']) == (0, 0):
                 LOCATIONS['spawn'] = wpos
-                return True
-                
+            return True
+            
         return True
-    
+        
     return hook

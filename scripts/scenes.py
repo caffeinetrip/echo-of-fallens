@@ -1,6 +1,6 @@
-import pygame
 import math
 import time
+import pygame
 import scripts.pygpen as pp
 
 class PrologueScene:
@@ -30,6 +30,9 @@ class PrologueScene:
         self.img_fade_speed = 1.5
         self.narrator_sound_timer = 0
         
+        self._load_prologue_image()
+    
+    def _load_prologue_image(self):
         try:
             self.prologue_img = self.game.e['Assets'].images.get('prologue', None)
             if not self.prologue_img:
@@ -41,61 +44,83 @@ class PrologueScene:
         current_time = time.time()
         
         if self.game.e.elems['singletons']['Input'].pressed('action'):
-            self.completed = True
-            self.game.scene = 'game'
-            self.game.e.elems['singletons']['Window'].start_transition()
-            self.game.e['Sounds'].play('action', volume=0.4)
-            self.game.e['Sounds'].play_music('default', volume=0.4)
+            self._handle_action_input()
             return
             
         if not self.completed:
-            if self.img_alpha < 255:
-                self.img_alpha = min(255, self.img_alpha + self.img_fade_speed)
+            self._update_prologue_intro(current_time)
+    
+    def _handle_action_input(self):
+        self.completed = True
+        self.game.scene = 'game'
+        self.game.e.elems['singletons']['Window'].start_transition()
+        self.game.e['Sounds'].play('action', volume=0.4)
+        self.game.e['Sounds'].play_music('default', volume=0.4)
+    
+    def _update_prologue_intro(self, current_time):
+        self._update_image_fade()
+        
+        if self.text_index < len(self.text):
+            self._update_text_reveal(current_time)
+        else:
+            self._update_title_reveal(current_time)
+    
+    def _update_image_fade(self):
+        if self.img_alpha < 255:
+            self.img_alpha = min(255, self.img_alpha + self.img_fade_speed)
+    
+    def _update_text_reveal(self, current_time):
+        if current_time - self.last_char_time > self.char_delay:
+            self.current_text += self.text[self.text_index]
+            self.text_index += 1
+            self.last_char_time = current_time
+            
+            if self.text_index <= len(self.text)-1 and self.text[self.text_index] != ' ':
+                self.game.e['Sounds'].play('author_talk', volume=0.1)
+    
+    def _update_title_reveal(self, current_time):
+        if not self.title_visible:
+            self.title_visible = True
+            self.title_fade_start = current_time
+            
+        if not self.waiting_for_input:
+            self.waiting_for_input = True
+            self.wait_start_time = current_time
+            
+        if self.title_index < len(self.title_text):
+            if current_time - self.last_title_char_time > self.title_char_delay:
+                self.current_title += self.title_text[self.title_index]
+                self.title_index += 1
+                self.last_title_char_time = current_time
                 
-            if self.text_index < len(self.text):
-                if current_time - self.last_char_time > self.char_delay:
-                    self.current_text += self.text[self.text_index]
-                    self.text_index += 1
-                    self.last_char_time = current_time
-                    if self.text_index <= len(self.text)-1 and self.text[self.text_index] != ' ':
-                        self.game.e['Sounds'].play('author_talk', volume=0.1)
-
-            else:
-                if not self.title_visible:
-                    self.title_visible = True
-                    self.title_fade_start = current_time
-                    
-                if not self.waiting_for_input:
-                    self.waiting_for_input = True
-                    self.wait_start_time = current_time
-                    
-                if self.title_index < len(self.title_text):
-                    if current_time - self.last_title_char_time > self.title_char_delay:
-                        self.current_title += self.title_text[self.title_index]
-                        self.title_index += 1
-                        self.last_title_char_time = current_time
-                        
-                if current_time - self.wait_start_time > 1.0:
-                    if self.game.e.elems['singletons']['Input'].pressed('action'):
-                        self.completed = True
-                        self.game.scene = 'game'
-                        self.game.e.elems['singletons']['Window'].start_transition()
-                        
-                        self.game.e['Sounds'].play_music('default', volume=0.4)
-                        
-            if self.title_visible:
-                progress = min(1.0, (current_time - self.title_fade_start) / self.title_fade_duration)
-                if progress < 0.5:
-                    smoothed = 2 * progress * progress
-                else:
-                    smoothed = 1 - pow(-2 * progress + 2, 2) / 2
-                    
-                self.title_fade_alpha = int(255 * smoothed)
-                self.title_y_offset = int(20 * (1 - smoothed))
+        if current_time - self.wait_start_time > 1.0:
+            if self.game.e.elems['singletons']['Input'].pressed('action'):
+                self.completed = True
+                self.game.scene = 'game'
+                self.game.e.elems['singletons']['Window'].start_transition()
+                self.game.e['Sounds'].play_music('default', volume=0.4)
                 
+        if self.title_visible:
+            self._update_title_fade_effect(current_time)
+    
+    def _update_title_fade_effect(self, current_time):
+        progress = min(1.0, (current_time - self.title_fade_start) / self.title_fade_duration)
+        if progress < 0.5:
+            smoothed = 2 * progress * progress
+        else:
+            smoothed = 1 - pow(-2 * progress + 2, 2) / 2
+            
+        self.title_fade_alpha = int(255 * smoothed)
+        self.title_y_offset = int(20 * (1 - smoothed))
+    
     def render(self):
         self.game.display.fill((10, 10, 10))
-   
+        self._render_prologue_image()
+        self._render_prologue_text()
+        self._render_title()
+        self._render_continue_prompt()
+    
+    def _render_prologue_image(self):
         if self.prologue_img:
             img_copy = self.prologue_img.copy()
          
@@ -105,7 +130,8 @@ class PrologueScene:
             img_x = (340 - self.prologue_img.get_width()) // 2
             img_y = 30
             self.game.e['Renderer'].blit(img_copy, (img_x, img_y), group='default')
-        
+    
+    def _render_prologue_text(self):
         text_prep = self.game.e['Text']['small_font'].prep_text(self.current_text, 300)
         text_width = text_prep.size[0]
         text_x = (340 - text_width) // 2
@@ -116,7 +142,8 @@ class PrologueScene:
             color=(255, 255, 255), bgcolor=(0,0,0,0),
             group='ui'
         )
-        
+    
+    def _render_title(self):
         if self.title_visible and self.current_title:
             title_lines = self.current_title.split('\n')
             for i, line in enumerate(title_lines):
@@ -130,6 +157,7 @@ class PrologueScene:
                     group='ui'
                 )
     
+    def _render_continue_prompt(self):
         if self.text_index >= len(self.text) and time.time() - self.wait_start_time > 1.0:
             if math.sin(time.time() * 4) > 0:
                 prompt_text = "Press E to continue"
@@ -142,9 +170,9 @@ class PrologueScene:
                     color=(152,152,152), bgcolor=(0,0,0,0),
                     group='ui'
                 )
-                
-                
-class GameOverScene:
+
+
+class GameOverScreen:
     def __init__(self, game, win=False):
         self.game = game
         self.win = win
@@ -162,17 +190,25 @@ class GameOverScene:
     def update(self):
         current_time = time.time()
         time_elapsed = current_time - self.display_time
+        
         if time_elapsed < 2.0:
             self.fade_alpha = min(255, self.fade_alpha + self.fade_in_speed)
 
         if time_elapsed > 2.0 and self.game.e['Input'].pressed('action'):
-            self.game.e['Sounds'].play('action', volume=0.4)
-            self.game.reset()
-            self.game.scene = 'game'
-            self.game.e['Window'].start_transition()
+            self._handle_restart()
+            
+    def _handle_restart(self):
+        self.game.e['Sounds'].play('action', volume=0.4)
+        self.game.reset()
+        self.game.scene = 'game'
+        self.game.e['Window'].start_transition()
             
     def render(self):
         self.game.display.fill((0, 0, 0))
+        self._render_game_over_text()
+        self._render_restart_prompt()
+    
+    def _render_game_over_text(self):
         text_color = (255, 220, 100) if self.win else (255, 100, 100)
         text_prep = self.game.e['Text']['small_font'].prep_text(self.text)
         text_x = (340 - text_prep.size[0]) // 2
@@ -183,7 +219,8 @@ class GameOverScene:
             bgcolor=(0,0,0,0),
             group='ui'
         )
-
+    
+    def _render_restart_prompt(self):
         if time.time() - self.display_time > 2.0:
             if math.sin(time.time() * 4) > 0:
                 prompt_text = "Press E to restart"

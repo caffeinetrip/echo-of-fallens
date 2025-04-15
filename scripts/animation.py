@@ -6,6 +6,5 @@ class Animation(pp.Entity):
         
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
-        
         if self.animation.finished:
             return True

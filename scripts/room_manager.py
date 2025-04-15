@@ -8,7 +8,7 @@ class RoomManager(pp.ElementSingleton):
     def __init__(self, custom_id=None):
         super().__init__(custom_id)
         self.reset()
-    
+        
     @property
     def bosses(self):
         return {
@@ -36,7 +36,7 @@ class RoomManager(pp.ElementSingleton):
     def move_to_room(self, direction, tilemap):
         if not self.rooms[self.current_room_id].ways[direction]:
             return False
-            
+        
         x, y = self.room_position(self.current_room_id)
         dx, dy = self.room_transitions[direction]
         new_x, new_y = x + dx, y + dy
@@ -75,6 +75,7 @@ class RoomManager(pp.ElementSingleton):
         elif room_id != "0,0":
             room = self.rooms[room_id]
             directions = []
+            
             for name, val in room.ways.items():
                 if val:
                     if name == 'up':
@@ -89,16 +90,16 @@ class RoomManager(pp.ElementSingleton):
                         tilemap_name += d + "_"
                         directions.remove(d)
                 tilemap_name = tilemap_name[:-1]+'.pmap'
-                                   
+            else:
+                tilemap_name = 'spawn.pmap'
         else:
             tilemap_name = 'spawn.pmap'
-        
+            
         tilemap.load(f"data/saves/map/rooms/{tilemap_name}")
-        
     
     def room_position(self, room_id):
         x, y = map(int, room_id.split(','))
         return (x, y)
     
     def position_to_room_id(self, x, y):
-        return f"{x},{y}" 
+        return f"{x},{y}"

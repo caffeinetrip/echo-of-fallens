@@ -1,6 +1,6 @@
 import random
 import scripts.pygpen as pp
-from scripts.cards import Card
+from scripts.spell import Spell
 
 class Room(pp.Element):
     def __init__(self, custom_id=None, singleton=False, register=False, room_id="0,0"):
@@ -13,60 +13,99 @@ class Room(pp.Element):
             'up': False
         }
         self.rm = self.e['RoomManager']
-        self.card = None
+        self.spell = None
         self.enemy = None
         
-        if self.e['Game'].player_chance == 50:
-            self.e['Game'].player_chance = 8
-            self.e['Game'].player_boss_chance_amp = 0.5
-        elif self.e['Game'].player_chance > 2:
-            self.e['Game'].player_chance -= 1
+        self._initialize_room()
+    
+    def _initialize_room(self):
+        self._adjust_player_chance()
         
-        if room_id == "0,0":
-            self.ways['left'] = True
-            self.ways['right'] = True
-            self.enemy = self.e['RoomManager'].bosses['main_boss']
-            
+        if self.room_id == "0,0":
+            self._setup_starting_room()
         else:
-            if len(self.e['Game'].avalible_spells) != 0:
-                if random.randint(1,self.e['Game'].player_chance) == 1:
-                    self.card = Card(random.choice(self.e['Game'].avalible_spells), 1)
-                    self.e['Game'].avalible_spells.remove(self.card.type)
-                    self.e['Game'].player_chance = 50
-                    
-            available_directions = ['left', 'left', 'right', 'right', 'up', 'down', 'down', 'down']
-            num_ways = random.randint(2, 3)
-            for _ in range(num_ways):
-                if available_directions:
-                    direction = random.choice(available_directions)
-                    self.ways[direction] = True
-                    
-                    available_directions = [item for item in available_directions if
-                                            item != direction]
+            self._setup_random_room()
+    
+    def _adjust_player_chance(self):
+        game = self.e['Game']
+        if not hasattr(game, 'player_chance'):
+            game.player_chance = 8 
             
-            room_id_list = pp.game_math.convert_string_to_list(room_id)
+        if not hasattr(game, 'player_boss_chance_amp'):
+            game.player_boss_chance_amp = 1 
             
-            if room_id_list[0] == -1 and room_id_list[1] < 0 and 'right' in self.ways:
-                self.ways['right'] = False
-            elif room_id_list[0] == 1 and room_id_list[1] < 0 and 'left' in self.ways:
-                self.ways['left'] = False
-            elif room_id == "0,1" and 'up' in self.ways:
-                self.ways['up'] = False
-                
-            elif room_id_list[0] == -1 and room_id_list[1] == 0:
-                self.ways['down'] = True
-                self.ways['right'] = True
-            elif room_id_list[0] == 1 and room_id_list[1] == 0:
-                self.ways['down'] = True
-                self.ways['left'] = True
-            if len(self.e['Game'].avalible_bosses) != 0 and self.card == None and sum([abs(room_id_list[0]), abs(room_id_list[1])]) > 1:
-                if random.randint(1, int(max(2*self.e['Game'].player_boss_chance_amp, 1))) == 1:
-                    self.enemy = self.e['RoomManager'].bosses[random.choice(self.e['Game'].avalible_bosses)]
-                    self.e['Game'].avalible_bosses.remove(self.enemy.type)
-                    self.e['Game'].player_boss_chance_amp = 2
-                
-            self.update_adjacent_rooms() 
+        if game.player_chance == 50:
+            game.player_chance = 8
+            game.player_boss_chance_amp = 0.5
+        elif game.player_chance > 2:
+            game.player_chance -= 1
+    
+    def _setup_starting_room(self):
+        self.ways['left'] = True
+        self.ways['right'] = True
+        self.enemy = self.e['RoomManager'].bosses['main_boss']
+    
+    def _setup_random_room(self):
+        self._try_place_spell()
+        self._setup_room_ways()
+        self._adjust_ways_by_position()
+        self._try_place_enemy()
+        self.update_adjacent_rooms()
+    
+    def _try_place_spell(self):
+        game = self.e['Game']
+        if not hasattr(game, 'available_spells'):
+            game.available_spells = ["fire", "water", "earth"]
             
+        if len(game.available_spells) != 0:
+            if random.randint(1, game.player_chance) == 1:
+                spell_type = random.choice(game.available_spells)
+                self.spell = Spell(spell_type, 1)
+                game.available_spells.remove(spell_type)
+                game.player_chance = 50
+    
+    def _setup_room_ways(self):
+        available_directions = ['left', 'left', 'right', 'right', 'up', 'down', 'down', 'down']
+        num_ways = random.randint(2, 3)
+        for _ in range(num_ways):
+            if available_directions:
+                direction = random.choice(available_directions)
+                self.ways[direction] = True
+                available_directions = [item for item in available_directions if item != direction]
+    
+    def _adjust_ways_by_position(self):
+        room_id_list = pp.game_math.convert_string_to_list(self.room_id)
+        
+        if room_id_list[0] == -1 and room_id_list[1] < 0 and 'right' in self.ways:
+            self.ways['right'] = False
+        elif room_id_list[0] == 1 and room_id_list[1] < 0 and 'left' in self.ways:
+            self.ways['left'] = False
+        elif self.room_id == "0,1" and 'up' in self.ways:
+            self.ways['up'] = False
+        elif room_id_list[0] == -1 and room_id_list[1] == 0:
+            self.ways['down'] = True
+            self.ways['right'] = True
+        elif room_id_list[0] == 1 and room_id_list[1] == 0:
+            self.ways['down'] = True
+            self.ways['left'] = True
+    
+    def _try_place_enemy(self):
+        game = self.e['Game']
+        if not hasattr(game, 'available_bosses'):
+            game.available_bosses = ["mom_ghost", "father_ghost"]
+            
+        room_id_list = pp.game_math.convert_string_to_list(self.room_id)
+        
+        if (len(game.available_bosses) != 0 and 
+            self.spell is None and 
+            sum([abs(room_id_list[0]), abs(room_id_list[1])]) > 1):
+            
+            if random.randint(1, int(max(2*game.player_boss_chance_amp, 1))) == 1:
+                enemy_type = random.choice(game.available_bosses)
+                self.enemy = self.e['RoomManager'].bosses[enemy_type]
+                game.available_bosses.remove(enemy_type)
+                game.player_boss_chance_amp = 2
+    
     def detect_ways(self):
         return self.ways
     
