@@ -46,11 +46,44 @@ class Room(pp.Element):
         self.enemy = self.e['RoomSystem'].bosses['main_boss']
     
     def _setup_random_room(self):
-        self._try_place_spell()
         self._setup_room_ways()
         self._adjust_ways_by_position()
-        self._try_place_enemy()
+        
+        adjacent_rooms = self._get_adjacent_rooms()
+        has_adjacent_spell = self._has_adjacent_item(adjacent_rooms, 'spell')
+        has_adjacent_enemy = self._has_adjacent_item(adjacent_rooms, 'enemy')
+
+        if not has_adjacent_spell:
+            self._try_place_spell()
+        
+        if not has_adjacent_enemy and self.spell is None:
+            self._try_place_enemy()
+        
         self.update_adjacent_rooms()
+    
+    def _get_adjacent_rooms(self):
+        adjacent_rooms = []
+        room_id_list = pp.game_math.convert_string_to_list(self.room_id)
+   
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        
+        for dx, dy in directions:
+            adj_coords = [room_id_list[0] + dx, room_id_list[1] + dy]
+            adj_room_id = f"{adj_coords[0]},{adj_coords[1]}"
+            
+            if adj_room_id in self.rm.rooms:
+                adjacent_rooms.append(self.rm.rooms[adj_room_id])
+        
+        return adjacent_rooms
+    
+    def _has_adjacent_item(self, adjacent_rooms, item_type):
+        """Check if any adjacent room has the specified item type"""
+        for room in adjacent_rooms:
+            if item_type == 'spell' and room.spell is not None:
+                return True
+            elif item_type == 'enemy' and room.enemy is not None:
+                return True
+        return False
     
     def _try_place_spell(self):
         game = self.e['Game']

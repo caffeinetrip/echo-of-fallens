@@ -82,6 +82,7 @@ class Game(pp.PygpenGame):
         self._reset_game_state()
         self._init_player()
         self.e['Window'].start_transition()
+        self.battle_system.player_die = False
         self.play_music()
     
     def _reset_game_state(self):
