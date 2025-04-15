@@ -5,7 +5,7 @@ import json
 import os
 import scripts.pygpen as pp
 
-class DialogueManager(pp.ElementSingleton):
+class DialogueSystem(pp.ElementSingleton):
     def __init__(self, custom_id=None):
         super().__init__(custom_id)
         self._init_dialogue_state()
@@ -41,22 +41,10 @@ class DialogueManager(pp.ElementSingleton):
         self.dialogue_appear_done = False
     
     def load_dialogues(self):
-        try:
-            with open('data/dialogues.json', 'r') as f:
-                dialogue_data = json.load(f)
-                self.dialogues = dialogue_data.get('dialogues', {})
-                self.post_battle_dialogues = dialogue_data.get('post_battle_dialogues', {})
-        except:
-            self._create_default_dialogues()
-    
-    def _create_default_dialogues(self):
-        os.makedirs('data', exist_ok=True)
-        
-        with open('data/dialogues.json', 'w') as f:
-            json.dump({
-                'dialogues': self.dialogues,
-                'post_battle_dialogues': self.post_battle_dialogues
-            }, f, indent=4)
+        with open('data/dbs/dialogues/dialogues.json', 'r') as f:
+            dialogue_data = json.load(f)
+            self.dialogues = dialogue_data.get('dialogues', {})
+            self.post_battle_dialogues = dialogue_data.get('post_battle_dialogues', {})
     
     def start_dialogue(self, enemy_type):
         self.active = True
@@ -150,7 +138,7 @@ class DialogueManager(pp.ElementSingleton):
             self._reveal_text_character(current_time)
     
     def _update_normal_dialogue(self, current_time):
-        input_manager = self.e.elems['singletons']['Input']
+        input_manager = self.e['Input']
         
         if self.dialogue_index < len(self.current_dialogue):
             current_dialogue_text = self.current_dialogue[self.dialogue_index]
@@ -185,10 +173,10 @@ class DialogueManager(pp.ElementSingleton):
     
     def _end_dialogue(self):
         self.active = False
-        current_room = self.e['Game'].room_manager.rooms[self.e['Game'].room_manager.current_room_id]
-        if current_room.enemy and not self.e['Game'].battle_manager.is_battling:
-            self.e['Game'].battle_manager.start_battle(current_room.enemy)
-            self.e.elems['singletons']['Window'].e_start_transition()
+        current_room = self.e['RoomSystem'].rooms[self.e['RoomSystem'].current_room_id]
+        if current_room.enemy and not self.e['BattleSystem'].is_battling:
+            self.e['BattleSystem'].start_battle(current_room.enemy)
+            self.e['Window'].e_start_transition()
     
     def _reveal_text_character(self, current_time):
         if current_time - self.last_char_time > self.char_delay:
@@ -219,7 +207,7 @@ class DialogueManager(pp.ElementSingleton):
             self._render_normal_dialogue()
     
     def _render_post_battle_dialogue(self):
-        text = self.e.elems['singletons']['Text']
+        text = self.e['Text']
         effective_alpha = min(self.fade_alpha, self.dialogue_appear_alpha)
         
         text_size = text['small_font'].prep_text(self.current_text).size
@@ -233,7 +221,7 @@ class DialogueManager(pp.ElementSingleton):
         )
     
     def _render_normal_dialogue(self):
-        text = self.e.elems['singletons']['Text']
+        text = self.e['Text']
         effective_alpha = self.dialogue_appear_alpha
         
         text_prep = text['small_font'].prep_text(self.current_text, 250)

@@ -5,10 +5,10 @@ import scripts.pygpen as pp
 from scripts.hooks import gen_hook
 from scripts.player import Player
 from scripts.spell_deck import SpellDeck
-from scripts.hud import HUD
-from scripts.managers.room_manager import RoomManager
-from scripts.managers.battle_manager import BattleManager
-from scripts.managers.dialogue_manager import DialogueManager
+from scripts.systems.hud import HUD
+from scripts.systems.room_system import RoomSystem
+from scripts.systems.battle_system import BattleSystem
+from scripts.systems.dialogue_system import DialogueSystem
 from scripts.scene import PrologueScene
 
 class Game(pp.PygpenGame):
@@ -18,7 +18,6 @@ class Game(pp.PygpenGame):
         self._load_assets()
         self._setup_camera()
         self._init_game_state()
-        self.load_managers()
         self.reset()
     
     def _init_pygame(self):
@@ -70,15 +69,16 @@ class Game(pp.PygpenGame):
         self.available_spells = ["fire", "water", "earth"]
         self.available_bosses = ["mom_ghost", "father_ghost"]
     
-    def load_managers(self):
-        self.room_manager = RoomManager()
+    def load_systems(self):
+        self.room_system = RoomSystem()
         self.spell_deck = SpellDeck()
-        self.hud = HUD()
-        self.battle_manager = BattleManager()
-        self.dialogue_manager = DialogueManager()
-        self.prologue = PrologueScene(self)
+        self.hud_system = HUD()
+        self.battle_system = BattleSystem()
+        self.dialogue_system = DialogueSystem()
+        self.prologue = PrologueScene()
     
     def reset(self):
+        self.load_systems()
         self._reset_game_state()
         self._init_player()
         self.e['Window'].start_transition()
@@ -98,11 +98,13 @@ class Game(pp.PygpenGame):
         self.deep_room_warning_shown = False
     
     def _init_player(self):
-        self.player = Player('player', (184, 110), room=self.room_manager.current_room_id)
+        self.player = Player('player', (184, 110), room=self.room_system.current_room_id)
         self.e['EntityGroups'].add(self.player, 'entities')
         self.player_deaths += 1
-        if hasattr(self.battle_manager, 'player_die'):
-            self.battle_manager.player_die = False
+        if hasattr(self.battle_system, 'player_die'):
+            self.battle_system.player_die = False
+        if self.player_deaths > 1:
+            self.battle_system.handle_player_defeat()
         
     def play_music(self, track='default', volume=0.4):
         self.e['Sounds'].play_music(track, volume=volume)
@@ -142,7 +144,7 @@ class Game(pp.PygpenGame):
             self.e['Window'].e_start_transition()
             
             if self.scene == 'game_over_2':
-                self.room_manager.update_tilemap(self.tilemap, '02')
+                self.room_system.update_tilemap(self.tilemap, '02')
     
     def _update_prologue(self):
         self.prologue.update()
@@ -184,7 +186,7 @@ class Game(pp.PygpenGame):
         self.e['EntityGroups'].renderz(offset=self.camera)
     
     def _render_room_info(self):
-        text = f"Room: {self.room_manager.current_room_id}"
+        text = f"Room: {self.room_system.current_room_id}"
         self.e['Text']['small_font'].renderzb(
             text, (10, 10), 
             line_width=0,
@@ -194,26 +196,26 @@ class Game(pp.PygpenGame):
         )
     
     def _update_hud(self):
-        self.hud.update(self.spell_deck.spells)
-        self.hud.render()
+        self.hud_system.update(self.spell_deck.spells)
+        self.hud_system.render()
     
     def _handle_room_objects(self):
-        current_room = self.room_manager.rooms[self.room_manager.current_room_id]
+        current_room = self.room_system.rooms[self.room_system.current_room_id]
         
         if current_room.spell is not None:
             current_room.spell.render()
         
         if current_room.enemy is not None:
             current_room.enemy.render()
-            self.battle_manager.check_for_battle(current_room)
+            self.battle_system.check_for_battle(current_room)
     
     def _update_managers(self):
-        self.battle_manager.update()
-        self.battle_manager.render()
-        self.battle_manager.handle_end_game()
+        self.battle_system.update()
+        self.battle_system.render()
+        self.battle_system.handle_end_game()
         
-        self.dialogue_manager.update()
-        self.dialogue_manager.render()
+        self.dialogue_system.update()
+        self.dialogue_system.render()
     
     def _update_rendering(self):
         self.e['Renderer'].cycle({
@@ -235,7 +237,7 @@ class Game(pp.PygpenGame):
         })
     
     def update_room_effects(self):
-        room_coords = pp.game_math.convert_string_to_list(self.room_manager.current_room_id)
+        room_coords = pp.game_math.convert_string_to_list(self.room_system.current_room_id)
         room = [abs(room_coords[0]), abs(room_coords[1])]
         room_sum = sum(room)
 
@@ -245,9 +247,9 @@ class Game(pp.PygpenGame):
     def _check_deep_room_warning(self, room_sum):
         if (room_sum > 10 and 
             not self.deep_room_warning_shown and 
-            not self.dialogue_manager.active and 
+            not self.dialogue_system.active and 
             len(self.spell_deck.spells) == 3):
-            self.dialogue_manager.show_center_text()
+            self.dialogue_system.show_center_text()
             self.deep_room_warning_shown = True
     
     def _update_noise_level(self, room_sum):

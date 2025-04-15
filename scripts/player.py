@@ -14,7 +14,7 @@ class Player(pp.PhysicsEntity):
         self.outline = (40, 35, 40)
         self.z = -5.5
         self.moves = [0, 0, 0, 0] 
-        self.rm = self.e['RoomManager']
+        self.rm = self.e['RoomSystem']
         self.transition_cooldown = 0 
         
         self.max_hp = 160
@@ -28,11 +28,11 @@ class Player(pp.PhysicsEntity):
 
         self._update_sound_timers(dt)
         
-        dialogue = self.e['DialogueManager'].active
-        if self.e['DialogueManager'].post_battle_mode:
+        dialogue = self.e['DialogueSystem'].active
+        if self.e['DialogueSystem'].post_battle_mode:
             dialogue = False
             
-        if not self.e['Game'].battle_manager.is_battling and not dialogue:
+        if not self.e['BattleSystem'].is_battling and not dialogue:
             self._handle_room_transitions(dt)
             
             if sum(self.moves) == 0:

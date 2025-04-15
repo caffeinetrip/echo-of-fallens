@@ -46,11 +46,11 @@ class Enemy(pp.Element):
         y_offset = math.sin(2 * self.e['Window'].time)/2 + self.player_offset
         current_time = time.time()
         
-        dialogue = self.e['DialogueManager'].active
-        if self.e['DialogueManager'].post_battle_mode:
+        dialogue = self.e['DialogueSystem'].active
+        if self.e['DialogueSystem'].post_battle_mode:
             dialogue = False
             
-        if not self.e['Game'].battle_manager.is_battling and not dialogue and self.e['Game'].player.action == 'idle':
+        if not self.e['BattleSystem'].is_battling and not dialogue and self.e['Game'].player.action == 'idle':
             if self.player_offset < 7:
                 self.player_offset += 0.08
             

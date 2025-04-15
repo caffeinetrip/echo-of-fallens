@@ -2,7 +2,7 @@ import pygame
 import scripts.pygpen as pp
 from scripts.vfx import BattleVFX
 
-class BattleManager(pp.ElementSingleton):
+class BattleSystem(pp.ElementSingleton):
     def __init__(self, custom_id=None):
         super().__init__(custom_id)
         self._init_battle_state()
@@ -115,11 +115,12 @@ class BattleManager(pp.ElementSingleton):
         self.vfx.update_sparks()
     
     def _dialogue_is_active(self):
-        return hasattr(self.e['Game'], 'dialogue_manager') and self.e['Game'].dialogue_manager.active
+        return hasattr(self.e, 'DialogueSystem') and self.e['DialogueSystem'].active
     
     def _check_waiting_dialogue(self, current_time):
-        if self.waiting_for_dialogue and current_time - self.battle_end_time >= 1.0:
-            self.e['Game'].dialogue_manager.start_post_battle_dialogue(self.post_battle_enemy_type)
+        
+        if self.waiting_for_dialogue and current_time - self.battle_end_time >= 1.0: 
+            self.e['DialogueSystem'].start_post_battle_dialogue(self.post_battle_enemy_type)
             self.post_battle_enemy_type = None
             self.waiting_for_dialogue = False
     
@@ -138,6 +139,14 @@ class BattleManager(pp.ElementSingleton):
                 self.game_over = False
                 self.set_tremor(0)
                 self.vfx.clear_all_sparks()
+                
+                if self.player_die and self.post_battle_enemy_type == 'author':
+                    self._check_post_battle_message()
+    
+    def _check_post_battle_message(self):
+        if self.post_battle_enemy_type and not self.waiting_for_dialogue:
+            self.battle_end_time = pygame.time.get_ticks() / 1000
+            self.waiting_for_dialogue = True
     
     def _update_battle_state(self):
         if self.e['HUD'].message_timer > 0:
@@ -151,15 +160,15 @@ class BattleManager(pp.ElementSingleton):
         self.check_battle_end()
     
     def check_for_battle(self, current_room):
-        if current_room.enemy is None or self.is_battling or self.e['Game'].dialogue_manager.active:
+        if current_room.enemy is None or self.is_battling or self.e['DialogueSystem'].active:
             return
             
         if current_room.enemy.type == 'main_boss':
             if self.e['Input'].pressed('action'):
                 self.e['Sounds'].play('action')
-                self.e['Game'].dialogue_manager.start_dialogue(current_room.enemy.type)
-        elif self.e['Game'].player.action == 'idle' and not self.e['Game'].dialogue_manager.active:
-            self.e['Game'].dialogue_manager.start_dialogue(current_room.enemy.type)
+                self.e['DialogueSystem'].start_dialogue(current_room.enemy.type)
+        elif self.e['Game'].player.action == 'idle' and not self.e['DialogueSystem'].active:
+            self.e['DialogueSystem'].start_dialogue(current_room.enemy.type)
     
     def handle_player_turn(self):
         deck = self.e['Game'].spell_deck
@@ -303,7 +312,7 @@ class BattleManager(pp.ElementSingleton):
             self._handle_enemy_defeat()
         
         if self.e['Game'].player.hp <= 0:
-            self._handle_player_defeat()
+            self.handle_player_defeat()
     
     def _handle_enemy_defeat(self):
         self._disable_fight_state()
@@ -321,25 +330,27 @@ class BattleManager(pp.ElementSingleton):
             self.e['Window'].fight = False
     
     def _clear_enemy_from_room(self):
-        current_room = self.e['Game'].room_manager.current_room_id
-        self.e['Game'].room_manager.rooms[current_room].enemy = None
+        current_room = self.e['RoomSystem'].current_room_id
+        self.e['RoomSystem'].rooms[current_room].enemy = None
     
     def _prepare_game_over_state(self):
         self.vfx.clear_all_sparks()
         self.game_over_timer = 0.4
         self.e['Window'].e_start_transition()
     
-    def _handle_player_defeat(self):
+    def handle_player_defeat(self):
         self._disable_fight_state()
         self.e['HUD'].set_battle_message("Defeat! Player lost.")
         
         self.set_tremor(0.7)
         self.e['Sounds'].play('death', volume=0.05)
         
-        self.vfx.clear_all_sparks()
         self.game_over = True
         self.game_over_timer = 0.4
         self.player_die = True
+
+        self.on_battle_end('author')
+        
         self.end_battle()
     
     def handle_end_game(self):
@@ -347,7 +358,7 @@ class BattleManager(pp.ElementSingleton):
             self.e['Game'].start_scene_transition('game_over_1')
             self.e['Game'].game_over_start_time = pygame.time.get_ticks() / 1000
             self.e['Game'].scene = 'game_over_1'
-            self.e['Game'].room_manager.update_tilemap(self.e['Game'].tilemap, '01')
+            self.e['RoomSystem'].update_tilemap(self.e['Game'].tilemap, '01')
             self.end_game = False
     
     def render(self):

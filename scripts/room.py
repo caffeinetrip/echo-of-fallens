@@ -12,7 +12,7 @@ class Room(pp.Element):
             'down': False,
             'up': False
         }
-        self.rm = self.e['RoomManager']
+        self.rm = self.e['RoomSystem']
         self.spell = None
         self.enemy = None
         
@@ -43,7 +43,7 @@ class Room(pp.Element):
     def _setup_starting_room(self):
         self.ways['left'] = True
         self.ways['right'] = True
-        self.enemy = self.e['RoomManager'].bosses['main_boss']
+        self.enemy = self.e['RoomSystem'].bosses['main_boss']
     
     def _setup_random_room(self):
         self._try_place_spell()
@@ -102,7 +102,7 @@ class Room(pp.Element):
             
             if random.randint(1, int(max(2*game.player_boss_chance_amp, 1))) == 1:
                 enemy_type = random.choice(game.available_bosses)
-                self.enemy = self.e['RoomManager'].bosses[enemy_type]
+                self.enemy = self.e['RoomSystem'].bosses[enemy_type]
                 game.available_bosses.remove(enemy_type)
                 game.player_boss_chance_amp = 2
     

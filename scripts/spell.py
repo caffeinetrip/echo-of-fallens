@@ -51,8 +51,8 @@ class Spell(pp.Element):
                 if hasattr(self.e['Game'], 'spell_deck'):
                     self.e['Game'].spell_deck.spells.append(self)
                     self.e['Sounds'].play('equip', 0.25)
-                    if self.e['RoomManager'].current_room_id in self.e['RoomManager'].rooms:
-                        self.e['RoomManager'].rooms[self.e['RoomManager'].current_room_id].spell = None
+                    if self.e['RoomSystem'].current_room_id in self.e['RoomSystem'].rooms:
+                        self.e['RoomSystem'].rooms[self.e['RoomSystem'].current_room_id].spell = None
                 
         if self.e['Game'].player.action != 'idle' and self.player_offset > 0:
             self.player_offset -= 0.5
