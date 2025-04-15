@@ -1,0 +1,20 @@
+{
+    "spells": [
+      {
+        "id": "fire",
+        "dmg": 20
+      },
+      {
+        "id": "water",
+        "dmg": 20
+      },
+      {
+        "id": "earth",
+        "dmg": 20
+      },
+      {
+        "id": "dark",
+        "dmg": 40
+      }
+    ]
+  }

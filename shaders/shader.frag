@@ -36,13 +36,7 @@ uniform float flicker_intensity = 0.05;
 out vec4 f_color;
 in vec2 uv;
 
-vec2 swirl(vec2 uv, float strength) {
-    vec2 center = vec2(0.5);
-    float dist = distance(uv, center);
-    float angle = atan(uv.y - center.y, uv.x - center.x);
-    angle += strength * (1.0 - dist);
-    return vec2(center.x + dist * cos(angle), center.y + dist * sin(angle));
-}
+
 
 vec2 random(vec2 uv) {
     uv = vec2(dot(uv, vec2(127.1, 311.7)), dot(uv, vec2(269.5, 183.3)));
@@ -128,6 +122,7 @@ float toGrayscale(vec3 color) {
 
 void main() {
     vec2 warped_uv = uv;
+    vec2 tex_uv;
     
     if (tremor > 0.0) {
         warped_uv = apply_tremor(warped_uv, tremor * 0.02);
@@ -137,11 +132,6 @@ void main() {
     if (clip_warp) {
         border_mask = border(warped_uv);
         warped_uv = mix(uv, warped_uv, border_mask);
-    }
-    
-    if (transition < 1.0) {
-        float swirl_strength = (1.0 - transition) * 10.0;
-        warped_uv = swirl(warped_uv, swirl_strength);
     }
     
     vec4 base_color = texture(bg_surf, warped_uv);
@@ -156,13 +146,9 @@ void main() {
         base_color += ui_color;
     }
     
-    vec2 tex_uv = warped_uv;
+    tex_uv = warped_uv;
     if (pixelate) {
         tex_uv = floor(tex_uv * resolution + 0.5) / resolution;
-    }
-    
-    if (transition < 1.0) {
-        tex_uv = swirl(tex_uv, (1.0 - transition) * 10.0);
     }
     
     float roll_line = 0.0;
@@ -229,6 +215,7 @@ void main() {
     }
 
     if (transition < 1.0) {
+        // Apply only darkness based on transition progress (no swirl)
         tex.rgb *= transition;
     }
 

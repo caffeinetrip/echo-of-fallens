@@ -1,14 +1,5 @@
-import scripts.pygpen as pp
-
 LOCATIONS = {
-    'spawn': (160, 120),
-    'light_sources': [],
-    'doors': {
-        'left': (0, 96),
-        'right': (304, 96),
-        'up': (160, 0),
-        'down': (160, 176)
-    }
+    'spawn': (160, 120)
 }
 
 def gen_hook():

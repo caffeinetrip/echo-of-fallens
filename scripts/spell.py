@@ -1,16 +1,14 @@
-import math, pygame
+import math
+import pygame
 import scripts.pygpen as pp
-from scripts.spells.fire import Fire
-from scripts.spells.water import Water
-from scripts.spells.earth import Earth
-from scripts.spells.dark import Dark
+from scripts.spells.spell_loader import create_spell
 
-spells = {
-    'fire': Fire(),
-    'water': Water(),
-    'earth': Earth(),
-    'dark': Dark()
-}
+_spell_instances = {}
+
+def get_spell(spell_id):
+    if spell_id not in _spell_instances:
+        _spell_instances[spell_id] = create_spell(spell_id)
+    return _spell_instances[spell_id]
 
 class Spell(pp.Element):
     def __init__(self, type, rarity):
@@ -23,7 +21,7 @@ class Spell(pp.Element):
     
     @property
     def spell(self):
-        return spells[self.type]
+        return get_spell(self.type)
     
     @property
     def img(self):

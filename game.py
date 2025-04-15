@@ -27,7 +27,7 @@ class Game(pp.PygpenGame):
             fps_cap=165,
             caption='Echo of Fallens',
             opengl=True,
-            input_path='data/key_configs/config.json',
+            input_path='data/dbs/key_configs/config.json',
             spritesheet_path='data/images/spritesheets',
             entity_path='data/images/entities',
             font_path='data/fonts',
@@ -86,7 +86,7 @@ class Game(pp.PygpenGame):
     
     def _reset_game_state(self):
         self.tilemap = pp.Tilemap(tile_size=(16, 16))
-        self.tilemap.load('data/saves/map/rooms/spawn.pmap', spawn_hook=gen_hook())
+        self.tilemap.load('data/dbs/rooms/spawn.pmap', spawn_hook=gen_hook())
         
         self.available_spells = ["fire", "water", "earth"]
         self.available_bosses = ["mom_ghost", "father_ghost"]

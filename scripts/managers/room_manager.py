@@ -95,7 +95,7 @@ class RoomManager(pp.ElementSingleton):
         else:
             tilemap_name = 'spawn.pmap'
             
-        tilemap.load(f"data/saves/map/rooms/{tilemap_name}")
+        tilemap.load(f"data/dbs/rooms/{tilemap_name}")
     
     def room_position(self, room_id):
         x, y = map(int, room_id.split(','))
