@@ -13,31 +13,26 @@ class SpellSlot(pp.Element):
 
     def render(self):
         slot_pos = (self.position[0], self.position[1])
-        # Використовуємо 'cards' замість 'spells' для зворотної сумісності
-        self.e['Renderer'].blit(self.e['Assets'].images['cards']['slot'], slot_pos, group='ui')
+        self.e['Renderer'].blit(self.e['Assets'].images['scrolls']['slot'], slot_pos, group='ui')
         if self.spell:
-            card_pos = (self.position[0]+1, self.position[1]+1)
-            # Отримуємо зображення заклинання
+            spell_pos = (self.position[0]+1, self.position[1]+1)
             spell_img = self._get_spell_image()
             self.e['Renderer'].blit(
                 pygame.transform.scale(
                     pygame.transform.flip(spell_img, False, True), 
                     (14,14)
                 ), 
-                card_pos, 
+                spell_pos, 
                 group='ui'
             )
     
     def _get_spell_image(self):
-        # Отримуємо зображення з правильного місця в assets
         if hasattr(self.spell, 'img'):
             return self.spell.img
-        
-        # Якщо spell.img не є доступним, спробуємо отримати зображення з Assets
+
         try:
-            return self.e['Assets'].images['cards'][self.spell.type]
+            return self.e['Assets'].images['scrolls'][self.spell.type]
         except:
-            # Запасний варіант: повертаємо пусте зображення
             return pygame.Surface((14, 14), pygame.SRCALPHA)
 
     def set_spell(self, spell):
@@ -242,13 +237,13 @@ class HUD(pp.ElementSingleton):
                     bgcolor=(40, 35, 40), group='ui'
                 )
         
-    def get_color(self, card_id):
-        if card_id >= len(self.buff_spells):
+    def get_color(self, spell_id):
+        if spell_id >= len(self.buff_spells):
             return (255, 255, 255)
             
-        if self.buff_spells[card_id].type == 'fire':
+        if self.buff_spells[spell_id].type == 'fire':
             return (255, 131, 1)
-        elif self.buff_spells[card_id].type == 'water':
+        elif self.buff_spells[spell_id].type == 'water':
             return (69, 198, 210)
         else:
             return (128, 50, 0)

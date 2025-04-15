@@ -4,12 +4,12 @@ import time
 import scripts.pygpen as pp
 from scripts.hooks import gen_hook
 from scripts.player import Player
-from scripts.room_manager import RoomManager
 from scripts.spell_deck import SpellDeck
 from scripts.hud import HUD
-from scripts.battle_manager import BattleManager
-from scripts.dialogue_manager import DialogueManager
-from scripts.scenes import PrologueScene, GameOverScreen
+from scripts.managers.room_manager import RoomManager
+from scripts.managers.battle_manager import BattleManager
+from scripts.managers.dialogue_manager import DialogueManager
+from scripts.scenes import PrologueScene
 
 class Game(pp.PygpenGame):
     def load(self):
@@ -42,7 +42,7 @@ class Game(pp.PygpenGame):
         self.ui_surf = pygame.Surface((340, 220), pygame.SRCALPHA)
     
     def _load_assets(self):
-        self.e['Assets'].load_folder('data/images/cards', colorkey=(0, 0, 0))
+        self.e['Assets'].load_folder('data/images/scrolls', colorkey=(0, 0, 0))
         self.e['Assets'].load_folder('data/images/enemy', colorkey=(0, 0, 0))
         self.e['Renderer'].set_groups(['default', 'ui', 'background'])
 
@@ -255,7 +255,6 @@ class Game(pp.PygpenGame):
             target_gain = ((room_sum - 10) * 3) / 10 + 1
             current_gain = self.e['Window'].noise_gain
             self.e['Window'].noise_gain = current_gain + (target_gain - current_gain) * 0.1
-
 
 if __name__ == "__main__":
     Game().run()

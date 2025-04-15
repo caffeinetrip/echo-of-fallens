@@ -28,7 +28,7 @@ class Spell(pp.Element):
     @property
     def img(self):
         try:
-            return self.e['Assets'].images['cards'][self.type]
+            return self.e['Assets'].images['scrolls'][self.type]
         except (KeyError, AttributeError):
             print(f"Warning: could not load image for spell type '{self.type}'")
             return pygame.Surface((16, 16), pygame.SRCALPHA)

@@ -293,10 +293,10 @@ class BattleManager(pp.ElementSingleton):
         return (200, 100) if entity == self.current_enemy else (150, 150)
     
     def _get_enemy_attack_type(self):
-        card = self.current_enemy.spells[0]
-        if hasattr(card, 'type'):
-            return card.type
-        return card.spell.type
+        spell = self.current_enemy.spells[0]
+        if hasattr(spell, 'type'):
+            return spell.type
+        return spell.spell.type
     
     def check_battle_end(self):
         if self.current_enemy and self.current_enemy.hp <= 0:
