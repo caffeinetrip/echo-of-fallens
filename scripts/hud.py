@@ -38,7 +38,11 @@ class HUD(pp.ElementSingleton):
         self.buff_appear_done = False
         self.showing_buff = False
         self.buff_cards = []
-
+        
+        self.battle_message = ""
+        self.message_timer = 0
+        self.selected_card_index = 0
+        
     def create_slots(self):
         slot_size = 16
         margin = 2
@@ -83,6 +87,9 @@ class HUD(pp.ElementSingleton):
                 self.buff_appear_done = True
                 self.buff_appear_alpha = 255
                 self.buff_y_offset = 0
+                
+        if self.message_timer > 0:
+            self.message_timer -= 0.016
 
     def render(self):
         for slot in self.slots:
@@ -117,17 +124,99 @@ class HUD(pp.ElementSingleton):
                 bgcolor=(0, 0, 0, 0),
                 group='ui'
             )
+            
+    def render_battle_ui(self, is_battling, enemy, player, turn):
+        if not is_battling:
+            return
+            
+        screen_width, screen_height = 320, 240
+        
+        left_rect = pygame.Surface((25, screen_height), pygame.SRCALPHA)
+        right_rect = pygame.Surface((25, screen_height), pygame.SRCALPHA)
+        top_rect = pygame.Surface((screen_width, 25), pygame.SRCALPHA)
+        bottom_rect = pygame.Surface((screen_width, 25), pygame.SRCALPHA)
+        
+        corner_radius = 12
+        rect_color = (0, 0, 0, 180)
+
+        pygame.draw.rect(left_rect, rect_color, (0, 0, 25, screen_height), border_radius=corner_radius)
+        pygame.draw.rect(right_rect, rect_color, (0, 0, 25, screen_height), border_radius=corner_radius)
+        pygame.draw.rect(top_rect, rect_color, (0, 0, screen_width, 25), border_radius=corner_radius)
+        pygame.draw.rect(bottom_rect, rect_color, (0, 0, screen_width, 25), border_radius=corner_radius)
+        
+        self.e['Renderer'].blit(left_rect, (0, 0), group='ui')
+        self.e['Renderer'].blit(right_rect, (screen_width - 25, 0), group='ui')
+        self.e['Renderer'].blit(top_rect, (0, 0), group='ui')
+        self.e['Renderer'].blit(bottom_rect, (0, screen_height - 25), group='ui')
+        
+        self.render_battle_message()
+        self.render_battle_stats(enemy, player, turn)
+        self.render_player_cards(turn)
+    
+    def render_battle_message(self):
+        if self.battle_message and self.message_timer > 0:
+            self.e['Text']['small_font'].renderzb(
+                self.battle_message, (160, 20),
+                line_width=0, color=(255, 255, 255),
+                bgcolor=(40, 35, 40), group='ui'
+            )
+    
+    def render_battle_stats(self, enemy, player, turn):
+        turn_text = f"Turn: {turn.capitalize()}"
+        self.e['Text']['small_font'].renderzb(
+            turn_text, (20, 30), line_width=0,
+            color=(255, 255, 255), bgcolor=(40, 35, 40),
+            group='ui'
+        )
+        
+        enemy_text = f"Enemy: {enemy.hp}/{enemy.max_hp}"
+        self.e['Text']['small_font'].renderzb(
+            enemy_text, (20, 65), line_width=0,
+            color=(200, 152, 152), bgcolor=(40, 35, 40),
+            group='ui'
+        )
+
+        player_text = f"You: {player.hp}/{player.max_hp}"
+        self.e['Text']['small_font'].renderzb(
+            player_text, (20, 50), line_width=0,
+            color=(200, 152, 152), bgcolor=(40, 35, 40),
+            group='ui'
+        )
+    
+    def render_player_cards(self, turn):
+        deck = self.e['Game'].deck
+        
+        if turn == 'player' and len(deck.cards) > 0:
+            for i, card in enumerate(deck.cards):
+                highlight = (i == self.selected_card_index)
+                color = (255, 255, 100) if highlight else (200, 200, 200)
+                card_type = card.type if hasattr(card, 'type') else card.spell.type
+                self.e['Text']['small_font'].renderzb(
+                    f"{card_type}", (130 + i * 40, 185),
+                    line_width=0, color=color,
+                    bgcolor=(40, 35, 40), group='ui'
+                )
         
     def get_color(self, card_id):
+        if card_id >= len(self.buff_cards):
+            return (255, 255, 255)
+            
         if self.buff_cards[card_id].type == 'fire':
             return (255, 131, 1)
         elif self.buff_cards[card_id].type == 'water':
-            return (69,198,210)
+            return (69, 198, 210)
         else:
-            return (128,50,0)
+            return (128, 50, 0)
             
     def get_selected_card(self):
         for slot in self.slots:
             if slot.is_selected and slot.card:
                 return slot.card, slot.index
         return None, -1
+        
+    def set_battle_message(self, message, timer=5):
+        self.battle_message = message
+        self.message_timer = timer
+        
+    def set_selected_card_index(self, index):
+        self.selected_card_index = index
