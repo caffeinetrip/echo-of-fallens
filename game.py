@@ -54,7 +54,7 @@ class Game(pp.PygpenGame):
         self.available_bosses = DEFAULT_BOSSES.copy()
         self.last_update_time = time.time()
     
-    def load_systems(self):
+    def _load_systems(self):
         self.room_system = RoomSystem()
         self.spell_deck = SpellDeck()
         self.hud_system = HUD()
@@ -64,7 +64,7 @@ class Game(pp.PygpenGame):
         self.prologue = PrologueScene()
     
     def reset(self):
-        self.load_systems()
+        self._load_systems()
         self.tilemap = pp.Tilemap(tile_size=TILE_SIZE)
         self.tilemap.load('data/dbs/rooms/spawn.pmap', spawn_hook=gen_hook())
         self.player_chance = 1
