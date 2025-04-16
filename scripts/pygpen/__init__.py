@@ -18,11 +18,12 @@ from .sound.sounds import Sounds
 from .tiles.tilemap import Tilemap, Tile
 from .ui.text import Text
 from .ui.textbox import Textbox
+from .hot_script.script_loader import ScriptLoader
 
 def init(dimensions=(640, 480), caption='pygpen window', entity_path=None,
         sounds_path=None, spritesheet_path=None, input_path=None,
         font_path=None, flags=0, fps_cap=60, dt_cap=1,
-        opengl=False, frag_path=None, sound_filetype='wav'):
+        opengl=False, frag_path=None, sound_filetype='wav', scripts_path='scripts'):
     window = Window(dimensions=dimensions, caption=caption, flags=flags, fps_cap=fps_cap, 
                    dt_cap=dt_cap, opengl=opengl, frag_path=frag_path)
     entity_groups = EntityGroups()
@@ -32,6 +33,7 @@ def init(dimensions=(640, 480), caption='pygpen window', entity_path=None,
     assets = Assets(spritesheet_path=spritesheet_path)
     input = Input(path=input_path)
     text = Text(path=font_path)
+    script_loader = ScriptLoader(scripts_path)
     elements = elems
     
     return elements

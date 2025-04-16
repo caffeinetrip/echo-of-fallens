@@ -63,10 +63,11 @@ class Game(pp.PygpenGame):
         self.dialogue_system = DialogueSystem()
         self.gamestate_system = GameStateSystem()
         self.prologue = PrologueScene()
+        self.script_loader = self.e['ScriptLoader']
+        self.script_loader.load_scripts()
     
     def reset(self):
         self.load_systems()
-        
         self.tilemap = pp.Tilemap(tile_size=TILE_SIZE)
         self.tilemap.load('data/dbs/rooms/spawn.pmap', spawn_hook=gen_hook())
         self.player_chance = 1
@@ -166,6 +167,8 @@ class Game(pp.PygpenGame):
         
         self.dialogue_system.update()
         self.dialogue_system.render()
+        
+        self.script_loader.update()
     
     def _update_room_effects(self):
         room_coords = pp.game_math.convert_string_to_list(self.room_system.current_room_id)
