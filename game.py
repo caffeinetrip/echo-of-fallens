@@ -102,7 +102,7 @@ class Game(pp.PygpenGame):
             self.prologue.update()
             self.prologue.render()
         elif self.gamestate_system.is_in_gameplay():
-            self._update_gameplay(current_time)
+            self._update_gameplay()
         
         self.e['Renderer'].cycle({
             'default': self.display,
@@ -122,7 +122,7 @@ class Game(pp.PygpenGame):
         
         self._update_room_effects()
     
-    def _update_gameplay(self, current_time):
+    def _update_gameplay(self):
         game_state = self.gamestate_system
         
         if game_state.scene == 'game' and self.e['Sounds'].current_music != 'default':
