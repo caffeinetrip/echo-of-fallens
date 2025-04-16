@@ -3,22 +3,21 @@ import sys
 import time
 
 import engine.pygpen as pp
-from engine.scripts.hooks import gen_hook
-from engine.scripts.player import Player
-from engine.scripts.spell_deck import SpellDeck
+from engine.components.player import Player
+from engine.components.spell_deck import SpellDeck
 from engine.systems.hud import HUD
 from engine.systems.room_system import RoomSystem
 from engine.systems.battle_system import BattleSystem
 from engine.systems.dialogue_system import DialogueSystem
 from engine.systems.game_state_system import GameStateSystem
-from engine.scripts.scene import PrologueScene
+from engine.components.scene import PrologueScene
+from engine.hooks import gen_hook
 
 WINDOW_SIZE = (1020, 660)
 DISPLAY_SIZE = (340, 220)
 TILE_SIZE = (16, 16)
 DEFAULT_SPELLS = ["fire", "water", "earth"]
 DEFAULT_BOSSES = ["mom_ghost", "father_ghost"]
-
 
 class Game(pp.PygpenGame):
     def load(self):
@@ -42,6 +41,8 @@ class Game(pp.PygpenGame):
         self.e['Renderer'].set_groups(['default', 'ui', 'background'])
         
         self.camera = pp.Camera(DISPLAY_SIZE, slowness=0.3, pos=(5, 0))
+
+        self.pidor = None
         
         self._init_state()
         self.reset()
@@ -51,7 +52,6 @@ class Game(pp.PygpenGame):
         self.player_boss_chance_amp = 1
         self.available_spells = DEFAULT_SPELLS.copy()
         self.available_bosses = DEFAULT_BOSSES.copy()
-        self.deep_room_warning_shown = False
         self.last_update_time = time.time()
     
     def load_systems(self):
@@ -62,7 +62,6 @@ class Game(pp.PygpenGame):
         self.dialogue_system = DialogueSystem()
         self.gamestate_system = GameStateSystem()
         self.prologue = PrologueScene()
-        self.e['ScriptLoader'].load_scripts()
     
     def reset(self):
         self.load_systems()
@@ -72,7 +71,6 @@ class Game(pp.PygpenGame):
         self.player_boss_chance_amp = 1
         self.available_spells = DEFAULT_SPELLS.copy()
         self.available_bosses = DEFAULT_BOSSES.copy()
-        self.deep_room_warning_shown = False
         
         self.player = Player('player', (184, 110), room=self.room_system.current_room_id)
         self.e['EntityGroups'].add(self.player, 'entities')
@@ -86,6 +84,9 @@ class Game(pp.PygpenGame):
         
         self.e['Window'].start_transition()
         self.e['Sounds'].play_music('default', volume=0.4)
+        
+        self.e['ScriptLoader'].load_scripts()
+        self.e['ScriptLoader'].update()
     
     def update(self):
         current_time = time.time()
@@ -118,8 +119,6 @@ class Game(pp.PygpenGame):
             'bg_surf': self.bg_surf,
             'ui_surf': self.ui_surf
         })
-        
-        self._update_room_effects()
         
         self.e['ScriptLoader'].update()
     
@@ -167,23 +166,6 @@ class Game(pp.PygpenGame):
         
         self.dialogue_system.update()
         self.dialogue_system.render()
-    
-    def _update_room_effects(self):
-        room_coords = pp.game_math.convert_string_to_list(self.room_system.current_room_id)
-        room_depth = abs(room_coords[0]) + abs(room_coords[1])
-        
-        if (room_depth > 10 and 
-            not self.deep_room_warning_shown and 
-            not self.dialogue_system.active and 
-            len(self.spell_deck.spells) == 3):
-            self.dialogue_system.show_center_text()
-            self.deep_room_warning_shown = True
-        
-        if room_depth > 10:
-            target_gain = ((room_depth - 10) * 3) / 10 + 1
-            current_gain = self.e['Window'].noise_gain
-            self.e['Window'].noise_gain = current_gain + (target_gain - current_gain) * 0.1
-
 
 if __name__ == "__main__":
     Game().run()

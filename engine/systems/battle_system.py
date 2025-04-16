@@ -1,7 +1,7 @@
 import pygame, time
 
 from .. import pygpen as pp
-from engine.scripts.vfx import BattleVFX
+from engine.components.vfx import BattleVFX
 
 class BattleSystem(pp.ElementSingleton):
     def __init__(self, custom_id=None):

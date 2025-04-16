@@ -30,6 +30,7 @@ class ScriptLoader(pp.ElementSingleton):
                     for name, obj in inspect.getmembers(module):
                         if inspect.isclass(obj) and hasattr(obj, 'is_game_script') and obj.is_game_script:
                             script_instance = obj()
+                            setattr(script_instance, 'e', self.e)
                             self.script_instances.append(script_instance)
                             self.scripts[script_name] = script_instance
                             print(f"Loaded script: {script_name}")

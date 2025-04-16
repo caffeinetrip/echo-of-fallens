@@ -1,6 +1,6 @@
 from .. import pygpen as pp
-from engine.scripts.room import Room
-from engine.scripts.enemy import main_boss, mom_ghost, father_ghost
+from engine.components.room import Room
+from engine.components.enemy import main_boss, mom_ghost, father_ghost
 
 name_index = ['left', 'right', 'top', 'down']
 

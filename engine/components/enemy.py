@@ -1,6 +1,6 @@
 import math, time, pygame
 from .. import pygpen as pp
-from engine.scripts.spell import Spell
+from engine.components.spell import Spell
 
 class Enemy(pp.Element):
     def __init__(self, type, spells_db, hp):

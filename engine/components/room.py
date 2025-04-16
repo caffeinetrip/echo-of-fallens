@@ -1,6 +1,6 @@
 import random
 from .. import pygpen as pp
-from engine.scripts.spell import Spell
+from engine.components.spell import Spell
 
 class Room(pp.Element):
     def __init__(self, custom_id=None, singleton=False, register=False, room_id="0,0"):
