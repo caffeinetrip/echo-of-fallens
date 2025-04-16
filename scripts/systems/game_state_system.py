@@ -34,8 +34,5 @@ class GameStateSystem(pp.ElementSingleton):
     def is_in_prologue(self):
         return self.scene == 'prologue'
     
-    def is_in_game_over(self):
-        return self.scene == 'game_over'
-    
     def is_in_gameplay(self):
         return self.scene in ['game', 'game_over_1', 'game_over_2']

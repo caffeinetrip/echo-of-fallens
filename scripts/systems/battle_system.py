@@ -73,6 +73,9 @@ class BattleSystem(pp.ElementSingleton):
         pygame.time.set_timer(pygame.USEREVENT, 2000)
         self.e['Sounds'].play('death', volume=0.05)
         self.on_battle_end(enemy_type)
+        
+        if enemy_type == 'main_boss':
+            self.e['GameStateSystem'].scene = 'game_over_1'
     
     def _player_critically_wounded(self):
         return self.player_die and self.e['Game'].player.hp <= 10
