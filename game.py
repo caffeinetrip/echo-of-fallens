@@ -1,18 +1,17 @@
 import pygame
 import sys
 import time
-from enum import Enum
 
-import scripts.pygpen as pp
-from scripts.hooks import gen_hook
-from scripts.player import Player
-from scripts.spell_deck import SpellDeck
-from scripts.systems.hud import HUD
-from scripts.systems.room_system import RoomSystem
-from scripts.systems.battle_system import BattleSystem
-from scripts.systems.dialogue_system import DialogueSystem
-from scripts.systems.game_state_system import GameStateSystem
-from scripts.scene import PrologueScene
+import engine.pygpen as pp
+from engine.scripts.hooks import gen_hook
+from engine.scripts.player import Player
+from engine.scripts.spell_deck import SpellDeck
+from engine.systems.hud import HUD
+from engine.systems.room_system import RoomSystem
+from engine.systems.battle_system import BattleSystem
+from engine.systems.dialogue_system import DialogueSystem
+from engine.systems.game_state_system import GameStateSystem
+from engine.scripts.scene import PrologueScene
 
 WINDOW_SIZE = (1020, 660)
 DISPLAY_SIZE = (340, 220)
@@ -63,8 +62,7 @@ class Game(pp.PygpenGame):
         self.dialogue_system = DialogueSystem()
         self.gamestate_system = GameStateSystem()
         self.prologue = PrologueScene()
-        self.script_loader = self.e['ScriptLoader']
-        self.script_loader.load_scripts()
+        self.e['ScriptLoader'].load_scripts()
     
     def reset(self):
         self.load_systems()
@@ -122,6 +120,8 @@ class Game(pp.PygpenGame):
         })
         
         self._update_room_effects()
+        
+        self.e['ScriptLoader'].update()
     
     def _update_gameplay(self):
         game_state = self.gamestate_system
@@ -167,8 +167,6 @@ class Game(pp.PygpenGame):
         
         self.dialogue_system.update()
         self.dialogue_system.render()
-        
-        self.script_loader.update()
     
     def _update_room_effects(self):
         room_coords = pp.game_math.convert_string_to_list(self.room_system.current_room_id)
