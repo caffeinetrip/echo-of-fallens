@@ -68,9 +68,9 @@ class RoomSystem(pp.ElementSingleton):
         return True
     
     def update_tilemap(self, tilemap, room_id):
-        if self.e['Game'].scene == 'game_over_1':
+        if self.e['GameStateSystem'].scene == 'game_over_1':
             tilemap_name = '01.pmap'
-        elif self.e['Game'].scene == 'game_over_2':
+        elif self.e['GameStateSystem'].scene == 'game_over_2':
             tilemap_name = '02.pmap'
         elif room_id != "0,0":
             room = self.rooms[room_id]

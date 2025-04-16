@@ -33,13 +33,10 @@ class PrologueScene(pp.ElementSingleton):
         self._load_prologue_image()
     
     def _load_prologue_image(self):
-        try:
-            self.prologue_img = self.e['Assets'].images.get('prologue', None)
-            if not self.prologue_img:
-                self.prologue_img = pygame.image.load('data/images/prologue.png').convert_alpha()
-        except:
-            print("Could not load prologue image")
-            
+        self.prologue_img = self.e['Assets'].images.get('prologue', None)
+        if not self.prologue_img:
+            self.prologue_img = pygame.image.load('data/images/prologue.png').convert_alpha()
+
     def update(self):
         current_time = time.time()
         
@@ -52,7 +49,7 @@ class PrologueScene(pp.ElementSingleton):
     
     def _handle_action_input(self):
         self.completed = True
-        self.e['Game'].scene = 'game'
+        self.e['GameStateSystem'].scene = 'game'
         self.e['Window'].start_transition()
         self.e['Sounds'].play('action', volume=0.4)
         self.e['Sounds'].play_music('default', volume=0.4)

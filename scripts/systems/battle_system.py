@@ -1,4 +1,4 @@
-import pygame
+import pygame, time
 import scripts.pygpen as pp
 from scripts.vfx import BattleVFX
 
@@ -354,12 +354,13 @@ class BattleSystem(pp.ElementSingleton):
         self.end_battle()
     
     def handle_end_game(self):
-        if self.end_game:
-            self.e['Game'].start_scene_transition('game_over_1')
-            self.e['Game'].game_over_start_time = pygame.time.get_ticks() / 1000
-            self.e['Game'].scene = 'game_over_1'
-            self.e['RoomSystem'].update_tilemap(self.e['Game'].tilemap, '01')
-            self.end_game = False
+        if self.player_die:
+            game_state = self.e['GameStateSystem']
+            
+            if game_state.scene == 'game':
+                game_state.scene = 'game_over_1'
+                game_state.game_over_start_time = time.time()
+                self.e['Sounds'].play_music('game_over', volume=0.3)
     
     def render(self):
         if self._nothing_to_render():
