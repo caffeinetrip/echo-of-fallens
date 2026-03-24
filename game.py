@@ -41,8 +41,6 @@ class Game(pp.PygpenGame):
         self.e['Renderer'].set_groups(['default', 'ui', 'background'])
         
         self.camera = pp.Camera(DISPLAY_SIZE, slowness=0.3, pos=(5, 0))
-
-        self.pidor = None
         
         self._init_state()
         self.reset()
